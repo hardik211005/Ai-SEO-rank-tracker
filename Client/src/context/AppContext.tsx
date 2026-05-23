@@ -20,7 +20,7 @@ interface AppContextType{
     register: ()=> Promise<{success: boolean; message: string}>;
     logout: ()=> void;
 }
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 
@@ -67,7 +67,7 @@ useEffect(() => {
 }, []);
     const login = async (email: string, password: string) => {
        try {
-            const res = await axios.post(`#{BACKEND_URL}/api/auth/login`, {email, password});
+            const res = await axios.post(`${BACKEND_URL}/api/auth/login`, {email, password});
             if(res.data.success){
                 setToken(res.data.token);
                 setUser(res.data.user);
@@ -82,7 +82,7 @@ useEffect(() => {
 
     const register = async (name: string, email: string, password: string) => {
         try {
-            const res = await axios.post(`#{BACKEND_URL}/api/auth/register`, {name, email, password});
+            const res = await axios.post(`${BACKEND_URL}/api/auth/register`, {name, email, password});
             if(res.data.success){
                 setToken(res.data.token);
                 setUser(res.data.user);

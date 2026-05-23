@@ -1,17 +1,48 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { use, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Mail, Lock, Loader2, ChartNoAxesColumnIcon, User2Icon } from "lucide-react";
+import { useApp } from "../context/AppContext";
+import toast from "react-hot-toast";
 
 export default function Login({ state }: { state: string }) {
     const [isLoginState, setIsLoginState] = useState(state === "login");
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [loading] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const { login, register } = useApp();
+    const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
+    const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
 
-    const handleSubmit = async (e: React.SubmitEvent) => {
-        e.preventDefault();
-    };
+    let result;
+
+    if (isLoginState) {
+        result = await login(email, password);
+    } else {
+        result = await register(name, email, password);
+    }
+
+    if (result.success) {
+        toast.success(result.message);
+
+        const redirect =
+            searchParams.get("redirect") || "/dashboard";
+
+        navigate(redirect);
+    } else {
+        toast.error(
+            result.message ||
+            (isLoginState
+                ? "Login failed"
+                : "Registration failed")
+        );
+    }
+
+    setLoading(false);
+};
 
     return (
         <div className="min-h-screen flex items-center justify-center px-4">

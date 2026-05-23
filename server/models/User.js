@@ -9,6 +9,6 @@ const userSchema = new mongoose.Schema({
     lastAnalysisDate: {type: Date, default: null},
 }, {timestamps: true})
 
-const User: mongoose.model("User", userSchema)
+const User = mongoose.model("User", userSchema)
 
 export default User;
