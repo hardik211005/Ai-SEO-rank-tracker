@@ -42,25 +42,29 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         return config;
     })
     const loadUser = async () => {
-        if(!token){
-            setLoading(false);
-            return;
-        }
-        try {
-            const {data} = await api.get('/api/auth/user')
-            if(data.success){
-                setUser(data.user);
-            }
-        } catch (error) {
-            localStorage.removeItem("token");
-            setToken(null);
-            setUser(null);
-        }
+    if (!token) {
         setLoading(false);
-        useEffect(()=>{
-            loadUser();
-        },[])
+        return;
     }
+
+    try {
+        const { data } = await api.get("/api/auth/user");
+
+        if (data.success) {
+            setUser(data.user);
+        }
+    } catch (error) {
+        localStorage.removeItem("token");
+        setToken(null);
+        setUser(null);
+    }
+
+    setLoading(false);
+};
+
+useEffect(() => {
+    loadUser();
+}, []);
     const login = async (email: string, password: string) => {
        try {
             const res = await axios.post(`#{BACKEND_URL}/api/auth/login`, {email, password});
