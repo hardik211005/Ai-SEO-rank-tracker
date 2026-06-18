@@ -41,12 +41,22 @@ try {
 //get all tracked keywords
 export const getKeywords = async (req, res) => {
     try {
-        const keywords = await keywordTracking.find({userId: req.userId}).sort({createdAt: -1}).select("-rankHistory")
-        res.json({success: true, keywords})
+        const keywords = await KeywordTracking.find({
+            userId: req.userId
+        })
+        .sort({ createdAt: -1 })
+        .select("-rankHistory");
+
+        res.json({
+            success: true,
+            keywords
+        });
     } catch (error) {
         console.error("Get Keywords Error:", error.message);
-        res.status(500).json({success: false, message: "Server error"});
-
+        res.status(500).json({
+            success: false,
+            message: "Server error"
+        });
     }
 }
 
