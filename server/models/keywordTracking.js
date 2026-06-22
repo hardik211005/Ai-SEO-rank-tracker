@@ -20,18 +20,18 @@ const keywordTrackingSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     keyword: { type: String, required: true, trim: true, lowercase: true },
     url: { type: String, required: true, trim: true },
-    currentPosition : { type: Date, default: null },
-    currentPage : {type: Number, default: null},
-    bestPosition : { type: Date, default: null },
+    domain: { type: String, required: true, trim: true },        
+    currentPosition : { type: Number, default: null },           
+    bestPosition : { type: Number, default: null },              
     positionChange : { type: Number, default: 0 },
     rankHistory: [rankEntrySchema],
     competitors: [competitorsSchema],
     active: {type: Boolean, default: true},
-    lastchecked: {type: Date, default: null},
+    lastChecked: {type: Date, default: null},                  
     status: {type: String, enum: ['pending', 'checking', 'completed', 'failed'],default: "pending"},
 },{timestamps: true});
 
-keywordTrackingSchema.index({useId: 1, keyword: 1, domain: 1}, {unique: true})
+keywordTrackingSchema.index({userId: 1, keyword: 1, domain: 1}, {unique: true}) 
 
 const KeywordTracking = mongoose.model('KeywordTracking', keywordTrackingSchema);
 

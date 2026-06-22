@@ -1,52 +1,102 @@
 import { rankTracker } from "./rankTrackerService.js";
 
-export async function keywordTracking(tracking){
+export async function keywordTracking(tracking) {
     try {
         let result;
+
         // try up to 2 times for reliability
-        for(let attempt = 1; attempt <= 2; attempt++){
-            result = await rankTracker(tracking.keyword, tracking.domain);
-            if(result.success && result.data.totalResultsScanned > 0) break;
-            if(attempt < 2) 
-                await new Promise((r) => setTimeout(r, result.success ? 3000: 5000)); // wait 5 seconds before retrying
+        for (let attempt = 1; attempt <= 2; attempt++) {
+            result = await rankTracker(
+                tracking.keyword,
+                tracking.domain
+            );
+
+            console.log("TRACK RESULT:", result);
+
+            if (
+                result?.success &&
+                result?.data?.totalResultsScanned > 0
+            ) {
+                break;
+            }
+
+            if (attempt < 2) {
+                await new Promise((r) =>
+                    setTimeout(
+                        r,
+                        result?.success ? 3000 : 5000
+                    )
+                );
+            }
         }
-        if(result.success){
-        const prev = tracking.currentPosiiton;
-        const today = new Date()
-        today.setHours(0,0,0,0);
 
-        tracking.currentPosiiton = result.data.position;
-        tracking.currentPage = result.data.page;
-        tracking.competitors = result.data.competitors;
-        tracking.lastChecked = new Date();
-        tracking.status = "completed";
+        if (result?.success) {
+            const prev = tracking.currentPosition;
 
-        //Update stats
-        tracking.positionChange = prev && result.data.position ? prev - result.data.position : 0;
-        if(result.data.position && (!tracking.bestPosition || result.data.position < tracking.bestPosition)){ 
-            tracking.bestPosition = result.data.position; }
-            
-            // Update history
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            tracking.currentPosition = result.data.position;
+            tracking.currentPage = result.data.page;
+            tracking.competitors = result.data.competitors || [];
+            tracking.lastChecked = new Date();
+            tracking.status = "completed";
+
+            // update stats
+            tracking.positionChange =
+                prev && result.data.position
+                    ? prev - result.data.position
+                    : 0;
+
+            if (
+                result.data.position &&
+                (!tracking.bestPosition ||
+                    result.data.position < tracking.bestPosition)
+            ) {
+                tracking.bestPosition = result.data.position;
+            }
+
+            // update history
             const historyEntry = {
-                data: today,
+                date: today,
                 position: result.data.position,
                 page: result.data.page,
                 title: result.data.title,
                 snippet: result.data.snippet,
+            };
+
+            const idx = tracking.rankHistory.findIndex(
+                (h) =>
+                    h.date &&
+                    h.date.toDateString() ===
+                        today.toDateString()
+            );
+
+            if (idx >= 0) {
+                tracking.rankHistory[idx] = historyEntry;
+            } else {
+                tracking.rankHistory.push(historyEntry);
             }
-            const idx = tracking.rankHistory.findIndex((h)=>h.date.toDateString() === today.toDateString());
-            if(idx >= 0) tracking.rankHistory[idx] = historyEntry;
-            else tracking.rankHistory.push(historyEntry);
-        }else{
+        } else {
             tracking.status = "failed";
         }
+
         await tracking.save();
+
         return result;
-    } catch(error) {
-        console.error("Rank update error:", error.message);
+    } catch (error) {
+        console.error(
+            "Rank update error:",
+            error.message
+        );
+
         tracking.status = "failed";
+
         await tracking.save().catch(() => {});
-        return {success: false, error: err.message}
-       
+
+        return {
+            success: false,
+            error: error.message,
+        };
     }
 }

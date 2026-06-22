@@ -55,7 +55,7 @@ export default function RankTracker() {
         try {
             const res = await api.post('/api/rank/add', { keyword: newKeyword.trim(), url: newUrl.trim() });
             if (res.data.success) {
-                setKeywords((prev) => [res.data.keyword, ...prev]);
+                setKeywords((prev) => [res.data.tracking, ...prev]);
                 setShowAddModal(false);
                 setNewKeyword("");
                 setNewUrl("");
@@ -83,7 +83,7 @@ export default function RankTracker() {
     const handleRefresh = async (id: string) => {
         setRefreshing(id);
         try {
-            await api.post(`/api/rank/refresh/${id}/refresh`);
+            await api.put(`/api/rank/${id}/refresh`);
             //update status to checking
             setKeywords((prev) => prev.map((k) => k._id === id ? { ...k, status: "checking" } : k));
             // poll for completion 
