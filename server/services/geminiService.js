@@ -111,9 +111,20 @@ Provide 5-15 issues sorted by severity (critical first). Be specific and actiona
 Extract top 10 keywords by frequency from the page content.`;
  
 
-const response = await 
+const response = await ai.models.generateContent({
+    model: 'gemma-4-31b-it',
+    contents: [{role: "user", parts: [{texts: prompt}]}],
+    config: {
+        responseMimeType: "application/json",
+        responseSchema: seoAnalysisSchema,
+    }
+})
+const analysis = JSON.parse(response.text)
+return {success: true, data: analysis}
+
     } catch (error) {
-        
+        console.error("Gemini analysis error:", error.message);
+        return {success: false, error: error.message};
     }
     
 }
