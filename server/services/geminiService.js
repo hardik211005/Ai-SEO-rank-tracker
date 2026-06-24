@@ -112,8 +112,8 @@ Extract top 10 keywords by frequency from the page content.`;
  
 
 const response = await ai.models.generateContent({
-    model: 'gemma-4-31b-it',
-    contents: [{role: "user", parts: [{texts: prompt}]}],
+    model: 'gemini-2.0-flash',
+    contents: [{role: "user", parts: [{text: prompt}]}],
     config: {
         responseMimeType: "application/json",
         responseSchema: seoAnalysisSchema,
