@@ -56,24 +56,34 @@ export default function Analyze() {
                     return
                 }
                 try {
-                    const check = await api.get(`/api/analysis/$(id)`);
+                    const check = await api.get(`/api/analysis/${id}`);
                     const analysis = check.data.analysis;
 
-                    if(analysis.this.status === "completed"){
+                    if(analysis.status === "completed"){
                         if(pollRef.current) clearInterval(pollRef.current)
                             setCurrentStep(3)
                         setTimeout(()=> navigate(`/report/${id}`),1000)
-                    } elseif()
-                } catch (error) {
+                    } else if(analysis.status === "failed") {
+                        if(pollRef.current) clearInterval(pollRef.current)
+                            setError("Analysis failed. The AI model might be down.")
+                        setAnalyzing(false)
+                    }else{
+                        //still processing
+                        if(attempts>5) setCurrentStep(2)
+                    }
+                } catch (err:any) {
+                    setError(err.response?.data?.message || err.message || "Failed to start analysis");
+                    setAnalyzing(false) 
                     
                 }
             }, 2000);
-        } catch (error) {
-            
-        }
+        } catch (err: any) {
+    setError(err.response?.data?.message || err.message || "Failed to start analysis");
+    setAnalyzing(false);
+}
     };
 
-    const handleSubmit = (e: React.SubmitEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         handleAnalyze();
     };
