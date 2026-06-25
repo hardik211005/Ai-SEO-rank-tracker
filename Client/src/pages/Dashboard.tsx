@@ -35,10 +35,12 @@ export default function Dashboard() {
        } catch (err) {
         console.error("Failed to fetch analyses:",err);
         
-       }
+       }finally {
+        setLoading(false)  // ← yeh add kar
+    }
     };
 
-    const handleAnalyze = (e: React.SubmitEvent) => {
+    const handleAnalyze = (e: React.FormEvent) => {
         e.preventDefault();
         if (url.trim()) {
             navigate(`/analyze?url=${encodeURIComponent(url)}`);

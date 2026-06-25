@@ -16,9 +16,9 @@ interface AppContextType{
     token: string | null;
     loading: boolean;
     api: AxiosInstance;
-    login: ()=> Promise<{success: boolean; message: string}>;
-    register: ()=> Promise<{success: boolean; message: string}>;
-    logout: ()=> void;
+    login: (email: string, password: string) => Promise<{success: boolean; message: string}>;
+    register: (name: string, email: string, password: string) => Promise<{success: boolean; message: string}>;
+    logout: () => void;
 }
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -48,7 +48,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-        const { data } = await api.get("/api/auth/user");
+        const { data } = await api.get("/api/auth/me");
 
         if (data.success) {
             setUser(data.user);

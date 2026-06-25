@@ -51,8 +51,7 @@ const seoAnalysisSchema = {
 };
 export async function analyzeSeoData(scrapedData) {
     try {
-       // Prompt for getting SEO Analysis structured data from AI
-const prompt = `You are an expert SEO analyst. Analyze the following website data and provide a comprehensive SEO audit.
+        const prompt = `You are an expert SEO analyst. Analyze the following website data and provide a comprehensive SEO audit.
 
 Website URL: ${scrapedData.url}
 Load Time: ${scrapedData.loadTime}ms
@@ -76,9 +75,6 @@ HEADINGS:
 - H1: ${scrapedData.headings.h1} (texts: ${JSON.stringify(scrapedData.headings.h1Texts)})
 - H2: ${scrapedData.headings.h2}
 - H3: ${scrapedData.headings.h3}
-- H4: ${scrapedData.headings.h4}
-- H5: ${scrapedData.headings.h5}
-- H6: ${scrapedData.headings.h6}
 
 LINKS:
 - Internal: ${scrapedData.links.internal}
@@ -90,41 +86,53 @@ IMAGES:
 - Missing Alt Text: ${scrapedData.images.missingAlt}
 - With Alt Text: ${scrapedData.images.withAlt}
 
-PAGE CONTENT (first 3000 chars):
-${scrapedData.bodyText}
+PAGE CONTENT (first 2000 chars):
+${scrapedData.bodyText?.substring(0, 2000)}
 
-Scoring guidelines:
-- Title: 50-60 chars optimal, must exist
-- Description: 150-160 chars optimal, must exist
-- H1: exactly 1 is ideal
-- Images: all should have alt text
-- Load time: <3s good, <5s ok, >5s poor
-- Page size: <3MB good
-- Must have viewport meta, charset, canonical
-- OG tags and Twitter cards are important
-- Internal linking is good for SEO
-- Word count: >300 words for content pages
-- Check heading hierarchy
+Respond ONLY with a valid JSON object (no markdown, no backticks) with this exact structure:
+{
+  "overallScore": <integer 0-100>,
+  "categories": {
+    "seo": <integer 0-100>,
+    "performance": <integer 0-100>,
+    "accessibility": <integer 0-100>,
+    "bestPractices": <integer 0-100>
+  },
+  "keywords": [
+    { "word": <string>, "count": <integer>, "density": <number> }
+  ],
+  "issues": [
+    { "severity": "critical"|"warning"|"info", "category": <string>, "message": <string>, "recommendation": <string> }
+  ]
+}`;
 
-Severity levels must be exactly one of: "critical", "warning", or "info".
-Provide 5-15 issues sorted by severity (critical first). Be specific and actionable with recommendations.
-Extract top 10 keywords by frequency from the page content.`;
- 
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+               model: "meta-llama/llama-3.1-8b-instruct",
+                messages: [{ role: "user", content: prompt }],
+                response_format: { type: "json_object" }
+            })
+        });
 
-const response = await ai.models.generateContent({
-    model: 'gemini-2.0-flash',
-    contents: [{role: "user", parts: [{text: prompt}]}],
-    config: {
-        responseMimeType: "application/json",
-        responseSchema: seoAnalysisSchema,
-    }
-})
-const analysis = JSON.parse(response.text)
-return {success: true, data: analysis}
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error?.message || "OpenRouter API error");
+        }
+
+        const text = data.choices[0].message.content;
+        const clean = text.replace(/```json|```/g, "").trim();
+        const analysis = JSON.parse(clean);
+        
+        return { success: true, data: analysis };
 
     } catch (error) {
         console.error("Gemini analysis error:", error.message);
-        return {success: false, error: error.message};
+        return { success: false, error: error.message };
     }
-    
 }
